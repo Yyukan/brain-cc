@@ -1,0 +1,15 @@
+{
+  "facts": [
+    {"needle": "PostgreSQL", "page": "projects/atlas/tasks.md", "type": "Project",
+     "title": "Atlas tasks", "description": "Open tasks and stack choices for Atlas.",
+     "tags": ["atlas", "database"], "line": "Atlas uses PostgreSQL as its database.",
+     "links": ["entities.md"]},
+    {"needle": "Kafka", "page": "projects/atlas/entities.md", "type": "Concept",
+     "title": "Atlas entities", "description": "Components of Atlas.",
+     "tags": ["atlas", "messaging"], "line": "Atlas event bus decision: Kafka."}
+  ],
+  "short": [
+    {"needle": "PostgreSQL", "line": "Prefers PostgreSQL over MySQL for Atlas."}
+  ],
+  "forbidden": ["Oracle", "Cassandra", "Redis"]
+}

@@ -1,0 +1,2 @@
+{"type": "summary", "summary": "nothing"}
+{"type": "assistant", "cwd": "/work/atlas", "timestamp": "2026-10-15T12:00:00.000Z", "message": {"role": "assistant", "content": [{"type": "text", "text": "Hello, I am ready."}]}}

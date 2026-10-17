@@ -1,0 +1,4 @@
+{"type": "user", "cwd": "/work/atlas", "timestamp": "2026-10-15T12:00:00.000Z", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t1", "content": "ok"}]}}
+{"type": "assistant", "cwd": "/work/atlas", "timestamp": "2026-10-15T12:01:00.000Z", "message": {"role": "assistant", "content": [{"type": "text", "text": "running tool"}]}}
+{"type": "user", "cwd": "/work/atlas", "timestamp": "2026-10-15T12:02:00.000Z", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t1", "content": "ok"}]}}
+{"type": "user", "cwd": "/work/atlas", "sessionId": "S", "timestamp": "2026-10-15T12:03:00.000Z", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t2", "content": "x"}]}}

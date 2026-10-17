@@ -1,7 +1,7 @@
 ---
 name: brain
 description: Persistent second-brain memory layer across sessions. Use when the user runs /brain, or asks to turn memory on/off, check status, extract past sessions, digest inbox notes into long-term memory, run the brain health check, or open the brain dashboard.
-argument-hint: "[on|off|status|init N|digest|digest model [id]|doctor|dashboard]"
+argument-hint: "[on|off|status|init N|digest|digest model [id]|digest notification [on|off]|doctor|dashboard]"
 ---
 
 # Brain
@@ -28,6 +28,7 @@ do not default to `status` if unsure. If the first word is not one of these
 | `digest` alone | **Do not run a script.** Read `~/.claude/skills/brain/references/digest.md` and follow it yourself, inline, with your own file tools (Read, Grep, Write, Edit) - the same cookbook the automatic digest runs, but with the model of this session. Store root is `~/.agents/brain/` (or `$AGENT_HOME/brain` if that env var is set; check with `echo $AGENT_HOME`). When finished, run `python3 ~/.claude/skills/brain/scripts/brain_cli.py metrics` and show its output, then give the cookbook's summary. Skip the metrics call if the cookbook stopped with "inbox empty". |
 | `digest model` (no id) | Run `python3 ~/.claude/skills/brain/scripts/brain_cli.py digest model`, show output verbatim. |
 | `digest model <model-id>` | Run `python3 ~/.claude/skills/brain/scripts/brain_cli.py digest model <model-id>`, show output verbatim. |
+| `digest notification` / `digest notification on` / `digest notification off` | Run `python3 ~/.claude/skills/brain/scripts/brain_cli.py digest notification` (append `on` or `off` if given), show output verbatim. |
 | `doctor` | Run `python3 ~/.claude/skills/brain/scripts/brain_cli.py doctor`, show output verbatim. |
 | `dashboard` | Run `python3 ~/.claude/skills/brain/scripts/brain_cli.py dashboard`, show output verbatim (it prints the path of the generated read-only HTML and opens it in the browser). |
 
@@ -48,5 +49,6 @@ or work around it.
 | `/brain digest` | Runs the digest cookbook inline, right now, then records a metrics snapshot |
 | `/brain digest model` | Prints the current `state.json.digest_model` |
 | `/brain digest model [model-id]` | Sets `state.json.digest_model` - model the automatic background digest uses (`auto` = host default) |
+| `/brain digest notification [on\|off]` | Prints / sets `state.json.digest_notification` - macOS notification when the background digest finishes (default on) |
 | `/brain doctor` | Deterministic health check: skill install, hooks wiring, store structure, OKF validity, short-memory caps - pass/fail per check |
 | `/brain dashboard` | Generates a read-only static HTML overview of the brain (memory sizes, growth, link graph) and opens it |

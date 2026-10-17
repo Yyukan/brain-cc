@@ -137,6 +137,8 @@ Minimal, flat config, one canonical default copy shipped with the plugin, one li
 { "enabled": true, "digest_model": "auto" }
 ```
 
+Optional `"digest_notification": bool` (missing = `true`): kill switch for the digest runner's end-of-run desktop notification (§8.3). If present it must be a bool (doctor flags anything else).
+
 Rules: every hook and every subcommand reads this file fresh each invocation (no caching across processes — each run is a fresh process). Missing file or unparsable content ⇒ treat as disabled (fail closed, not open).
 
 ---
@@ -161,6 +163,7 @@ Rules: every hook and every subcommand reads this file fresh each invocation (no
 
 - WHY: the slow/paid step lives entirely outside the hook's timeout.
 - Own timeout constant wrapping the actual external call, with a catch-timeout branch that logs, best-effort notifies the user, and returns a non-zero/error status.
+- Notification (best effort, never changes the exit code, silent no-op off macOS / without `osascript` / when `state.json.digest_notification` is false): the runner snapshots before the LLM call (taken inbox files: count + bytes; hash of every long-memory page except reserved `index.md`/`log.md`; short-memory lines) and, on success (after inbox deletion + metrics), diffs deterministically (never parsing LLM output). Title `🧠 brain · digest ✓`, subtitle `📥 N sessions · size`, body `📚 ✚ created ✎ updated ✖ deleted` (long lists end in `+N more`; `📚 no changes` when none) plus `⚡ +N: <first added short-memory line>` only if short-memory gained lines. Failure/timeout use `✗` with body `exit code N · inbox kept` / `timed out after Ns · inbox kept`. Test hooks: `BRAIN_NOTIFY_CMD` (replaces `osascript`), `BRAIN_NOTIFY_PLATFORM` (replaces the platform check).
 - If it must write progress somewhere the user can see, consider that the host's own UI may still be tearing down the display immediately after the child starts — a short delay before the first write can avoid output being clobbered. Any user-facing progress mirroring should be best-effort and silently no-op if there's nowhere to write it.
 - Runs the capture step first (raw session material → the store's inbox), then the actual summarization/LLM step, reading its own configured model/parameters from `state.json` each run (not hardcoded) — lets a config subcommand change behavior without touching code. Logs every step and exit code to the shared log file regardless of success or failure.
 
@@ -220,6 +223,7 @@ This same cookbook must be invokable **both** inline (the agent follows it itsel
 | `/<plugin> init N` | `<capture> N` then offer `/<plugin> digest` | backfill N past sessions into inbox |
 | `/<plugin> digest` | inline, agent follows the cookbook itself | manual digest, using whatever model/agent is currently active |
 | `/<plugin> digest model [id]` | `<plugin>_cli digest model [id]` | get/set the **automatic background** digest's model only |
+| `/<plugin> digest notification [on\|off]` | `<plugin>_cli digest notification [on\|off]` | get/set the digest-finished notification (`state.json.digest_notification`, default on) |
 | `/<plugin> doctor` | `<plugin>_cli doctor` | deterministic install/health check |
 
 ---
@@ -260,9 +264,12 @@ Four files that change little between hosts — the config schema and the *conte
 ```json
 {
   "enabled": true,
-  "digest_model": "auto"
+  "digest_model": "auto",
+  "digest_notification": true
 }
 ```
+
+(`"digest_notification": true|false` defaults to `true` when missing and is toggled by `<plugin>_cli digest notification on|off`.)
 
 - `enabled` — master on/off switch every hook and subcommand checks first.
 - `digest_model` — which model the *automatic background* digest worker uses; `"auto"` defers to the host's own default-model selection. Kept separate from whatever model happens to be active in an interactive session, since the background worker runs headlessly with no active session to inherit a model from.
@@ -367,7 +374,7 @@ description: Persistent second-brain memory layer across sessions. Use when
   extract past sessions, or digest inbox notes into long-term memory.
 license: <your license>
 compatibility: <target host>
-argument-hint: "[on|off|status|init|digest|digest model|digest model <model-id>|doctor]"
+argument-hint: "[on|off|status|init|digest|digest model|digest model <model-id>|digest notification [on|off]|doctor]"
 metadata:
   author: <you>
   version: 0.0.1
@@ -397,6 +404,7 @@ of these, show the Commands table below and stop:
 | `digest` alone | **Do not run a script.** Follow `references/digest.md` yourself, inline, using your own file tools (`grep`, read, write) - same cookbook the automatic digest runs, but wit[…] |
 | `digest model` (no id) | Run `<script-runner> <skill-dir>/scripts/<plugin>_cli.* digest model`, show output verbatim. |
 | `digest model <model-id>` | Run `<script-runner> <skill-dir>/scripts/<plugin>_cli.* digest model <model-id>`, show output verbatim. |
+| `digest notification` / `digest notification on` / `digest notification off` | Run `<script-runner> <skill-dir>/scripts/<plugin>_cli.* digest notification [on\|off]`, show output verbatim. |
 | `doctor` | Run `<script-runner> <skill-dir>/scripts/<plugin>_cli.* doctor`, show output verbatim. |
 
 ## Commands
@@ -410,6 +418,7 @@ of these, show the Commands table below and stop:
 | `/<plugin> digest` | Manually runs the digest cookbook above, inline, right now |
 | `/<plugin> digest model` | Prints the current `state.json.digest_model` |
 | `/<plugin> digest model [model-id]` | Sets `state.json.digest_model = model-id` - model the automatic background digest will use |
+| `/<plugin> digest notification [on\|off]` | Prints / sets `state.json.digest_notification` (digest-finished desktop notification, default on) |
 | `/<plugin> doctor` | Deterministic health check: skill install, hooks wiring, long-memory structure, short-memory file, hook scripts, instructions.md, state.json, digest_model - pass/fail[…] |
 ```
 

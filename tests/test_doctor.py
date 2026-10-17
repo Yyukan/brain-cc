@@ -143,6 +143,11 @@ class DoctorTests(BrainCase):
         idx.write_text('---\ntype: Concept\nokf_version: "0.1"\ngenerated: { by: x, at: y }\n---\n')
         self.assert_fails("index.md reserved frontmatter")
 
+    def test_digest_notification_non_bool_flagged(self):
+        (self.store / "state.json").write_text(
+            '{"enabled": true, "digest_model": "auto", "digest_notification": "yes"}')
+        self.assert_fails("state.json valid")
+
     def test_state_invalid_and_missing_store_parts(self):
         (self.store / "state.json").write_text('{"enabled": "yes", "digest_model": "auto"}')
         self.assert_fails("state.json valid")

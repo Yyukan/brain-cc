@@ -42,6 +42,7 @@ unless `BRAIN_FORCE=1`.
 | `/brain init N` | Backfill the last N past sessions into `inbox/`, then offer a digest |
 | `/brain digest` | Digest the inbox now, inline, with the current session's model |
 | `/brain digest model [id]` | Get / set the model of the automatic background digest (`auto` = default) |
+| `/brain digest notification [on\|off]` | Get / set the macOS notification at the end of the background digest (default on): created/updated pages, short-memory additions, inbox size; `✗` on failure/timeout |
 | `/brain doctor` | Pass/fail health check of install, hooks, store and OKF validity |
 | `/brain dashboard` | Generate and open a read-only static HTML overview |
 

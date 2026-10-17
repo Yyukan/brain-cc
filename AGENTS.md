@@ -30,7 +30,10 @@ Every script opens with a comment block: `WHY` (why it exists), `WHAT`
 Never run installer, hooks or scripts against the real home. Always set
 `AGENT_HOME=<tmp> CLAUDE_CONFIG_DIR=<tmp>`. Run
 `python3 -m unittest discover -s tests`. Live tests (real `claude`) run only
-with `BRAIN_LIVE_TESTS=1`. `BRAIN_DIGEST_TIMEOUT` shortens the digest timeout.
+with `BRAIN_LIVE_TESTS=1`. `BRAIN_DIGEST_TIMEOUT` shortens the digest timeout. Digest notifications:
+`BRAIN_NOTIFY_CMD` replaces `osascript` (argv `[cmd, "-e", script]`; tests use
+`tests/fixtures/fake_osascript.py`, which appends to `BRAIN_FAKE_NOTIFY_LOG`),
+`BRAIN_NOTIFY_PLATFORM` overrides `sys.platform` for the darwin check.
 
 ## Not live until reinstalled
 

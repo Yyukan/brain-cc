@@ -1,4 +1,5 @@
 {
   "enabled": true,
-  "digest_model": "auto"
+  "digest_model": "auto",
+  "digest_notification": true
 }

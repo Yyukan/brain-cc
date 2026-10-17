@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # WHY:  one place for every deterministic, non-hook brain subcommand and for the exhaustive
 #       "what a correct install looks like" check.
-# WHAT: flat dispatch: on | off | status | digest model [id] | doctor | metrics |
+# WHAT: flat dispatch: on | off | status | digest model [id] | digest notification [on|off] | doctor | metrics |
 #       dashboard [--no-open] [--out PATH]. Anything else prints usage, exit 2.
 # WHO:  the brain skill (SKILL.md dispatch rows), digest_runner.py (metrics), humans.
 import json
@@ -16,7 +16,7 @@ import brain_lib as lib  # noqa: E402
 
 NAME = "brain_cli"
 HERE = Path(__file__).resolve().parent
-USAGE = ("usage: brain_cli.py on | off | status | digest model [<model-id>] | doctor | metrics | "
+USAGE = ("usage: brain_cli.py on | off | status | digest model [<model-id>] | digest notification [on|off] | doctor | metrics | "
          "dashboard [--no-open] [--out PATH]")
 SCRIPTS = ("brain_lib.py", "session_start.py", "session_end.py", "digest_runner.py",
            "capture.py", "brain_cli.py", "dashboard.py")
@@ -75,6 +75,28 @@ def cmd_digest_model(model=None):
     return 0
 
 
+def cmd_digest_notification(value=None):
+    if not need_store():
+        return 1
+    st = lib.read_state_raw()
+    if value is None:
+        if not st or lib.state_problems(st):
+            print("error: state.json missing or invalid (run doctor)", file=sys.stderr)
+            return 1
+        print("on" if st.get("digest_notification", True) else "off")
+        return 0
+    st = st or {}
+    if not isinstance(st.get("enabled"), bool):
+        st["enabled"] = True
+    if not isinstance(st.get("digest_model"), str) or not st["digest_model"].strip():
+        st["digest_model"] = "auto"
+    st["digest_notification"] = value
+    lib.write_state(st)
+    lib.log(NAME, "digest_notification=%s" % str(value).lower())
+    print("digest_notification = %s" % ("on" if value else "off"))
+    return 0
+
+
 def dir_stats(path):
     n = size = 0
     if path.is_dir():
@@ -99,6 +121,7 @@ def cmd_status():
     print("store:        %s" % store)
     print("enabled:      %s" % ("INVALID (treated as disabled)" if bad else str(st["enabled"]).lower()))
     print("digest_model: %s" % ("?" if bad else st["digest_model"]))
+    print("digest_notification: %s" % ("?" if bad else ("on" if st.get("digest_notification", True) else "off")))
     n, size = dir_stats(store / "inbox")
     print("inbox:        %d file(s), %d bytes" % (n, size))
     try:
@@ -200,7 +223,7 @@ def check_store(d):
         d.check("store file %s" % rel, (store / rel).is_file(), "missing")
     st = lib.read_state_raw()
     probs = ["unreadable or not an object"] if st is None else lib.state_problems(st)
-    d.check("state.json valid (enabled bool, digest_model non-empty string)", not probs, "; ".join(probs))
+    d.check("state.json valid (enabled bool, digest_model non-empty string, digest_notification bool if present)", not probs, "; ".join(probs))
     # metrics
     mtxt = read(store / "metrics.jsonl")
     bad = []
@@ -338,6 +361,10 @@ def main(argv):
         return cmd_set_enabled(False)
     if argv == ["status"]:
         return cmd_status()
+    if argv == ["digest", "notification"]:
+        return cmd_digest_notification()
+    if len(argv) == 3 and argv[:2] == ["digest", "notification"] and argv[2] in ("on", "off"):
+        return cmd_digest_notification(argv[2] == "on")
     if argv == ["digest", "model"]:
         return cmd_digest_model()
     if len(argv) == 3 and argv[:2] == ["digest", "model"]:

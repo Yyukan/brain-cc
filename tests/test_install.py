@@ -25,7 +25,7 @@ class InstallTests(BrainCase):
                   "dashboard.py"):
             self.assertTrue(os.access(self.script(s), os.X_OK), s)
         self.assertEqual(json.loads((self.store / "state.json").read_text()),
-                         {"enabled": True, "digest_model": "auto"})
+                         {"enabled": True, "digest_model": "auto", "digest_notification": True})
         for rel in ("brain.log", ".sessions", "metrics.jsonl", "short-memory.md",
                     "long-memory/index.md", "long-memory/log.md"):
             self.assertTrue((self.store / rel).is_file(), rel)

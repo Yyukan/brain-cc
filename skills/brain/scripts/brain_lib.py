@@ -141,6 +141,8 @@ def state_problems(state):
     dm = state.get("digest_model")
     if not isinstance(dm, str) or not dm.strip():
         out.append("'digest_model' must be a non-empty string")
+    if "digest_notification" in state and not isinstance(state["digest_notification"], bool):
+        out.append("'digest_notification' must be a bool when present")
     return out
 
 

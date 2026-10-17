@@ -20,15 +20,34 @@ class BrainCliTests(BrainCase):
     def test_off_then_on(self):
         r = self.cli("off")
         self.assertEqual((r.returncode, r.stdout.strip()), (0, "brain disabled"))
-        self.assertEqual(self.state(), {"enabled": False, "digest_model": "auto"})
+        self.assertEqual(self.state(), {"enabled": False, "digest_model": "auto", "digest_notification": True})
         r = self.cli("on")
         self.assertEqual((r.returncode, r.stdout.strip()), (0, "brain enabled"))
-        self.assertEqual(self.state(), {"enabled": True, "digest_model": "auto"})
+        self.assertEqual(self.state(), {"enabled": True, "digest_model": "auto", "digest_notification": True})
 
     def test_on_repairs_corrupt_state(self):
         (self.store / "state.json").write_text("{garbage")
         self.assertEqual(self.cli("on").returncode, 0)
         self.assertEqual(self.state(), {"enabled": True, "digest_model": "auto"})
+
+    def test_digest_notification_show_on_off(self):
+        self.assertEqual(self.cli("digest", "notification").stdout.strip(), "on")  # scaffold/missing = on
+        r = self.cli("digest", "notification", "off")
+        self.assertEqual((r.returncode, r.stdout.strip()), (0, "digest_notification = off"))
+        self.assertEqual(self.state(), {"enabled": True, "digest_model": "auto", "digest_notification": False})
+        self.assertEqual(self.cli("digest", "notification").stdout.strip(), "off")
+        self.assertIn("digest_notification: off", self.cli("status").stdout)
+        self.assertEqual(self.cli("digest", "notification", "on").returncode, 0)
+        self.assertTrue(self.state()["digest_notification"])
+        self.assertEqual(self.cli("digest", "notification", "maybe").returncode, 2)
+        self.assertEqual(self.cli("notify").returncode, 2)
+
+    def test_digest_notification_missing_key_valid_and_keeps_other_keys(self):
+        (self.store / "state.json").write_text('{"enabled": false, "digest_model": "x-model"}')
+        self.assertEqual(self.cli("digest", "notification").stdout.strip(), "on")
+        self.assertEqual(self.cli("doctor").returncode, 0, self.cli("doctor").stdout)
+        self.cli("digest", "notification", "off")
+        self.assertEqual(self.state(), {"enabled": False, "digest_model": "x-model", "digest_notification": False})
 
     def test_status(self):
         (self.store / "short-memory.md").write_text("a\nb\n")
@@ -57,7 +76,7 @@ class BrainCliTests(BrainCase):
         self.assertEqual(self.state()["enabled"], True)
         self.cli("off")
         self.cli("digest", "model", "opus")
-        self.assertEqual(self.state(), {"enabled": False, "digest_model": "opus"})
+        self.assertEqual(self.state(), {"enabled": False, "digest_model": "opus", "digest_notification": True})
 
     def test_digest_model_rejects_invalid_id(self):
         for bad in ("-rf", "a b", "x;y", "$(id)", ""):
